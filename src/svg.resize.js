@@ -16,6 +16,7 @@ class ResizeHandler {
     this.resize = this.resize.bind(this)
     this.endResize = this.endResize.bind(this)
     this.rotate = this.rotate.bind(this)
+    this.shear = this.shear.bind(this)
   }
 
   active (value) {
@@ -122,30 +123,40 @@ class ResizeHandler {
     const dy1 = this.startPoint.y - cy
     const dx2 = endPoint.x - cx
     const dy2 = endPoint.y - cy
-    const c = Math.sqrt(dx1 * dx1 + dy1 * dy1) * Math.sqrt(dx2 * dx2 + dy2 * dy2)
-    if (c === 0) {
-      return
-    }
-    let angle = Math.acos((dx1 * dx2 + dy1 * dy2) / c) / Math.PI * 180
-    if (endPoint.x < this.startPoint.x) {
-      angle = -angle
-    }
+    const factor = 180 / Math.PI
+    const sAngle = Math.atan2(dx1, dy1)
+    const pAngle = Math.atan2(dx2, dy2)
+    const angle = sAngle - pAngle
 
-    this.angle = angle
     if (this.el.dispatch('resize', { box: this.startBox, angle: angle, shear: 0, eventType: this.eventType, event: e, handler: this }).defaultPrevented) {
       return
     }
 
-    this.el.rotate(angle)
+    this.el.rotate(angle * factor)
   }
 
   shear (e) {
-    // TODO: Add shear
+    const endPoint = this.el.point(getCoordsFromEvent(e))
+    const cx = this.box.cx
+    const cy = this.box.cy
+    const dx1 = this.startPoint.x - cx
+    const dy1 = this.startPoint.y - cy
+    const dx2 = endPoint.x - cx
+    const factor = 180 / Math.PI
+    const sAngle = Math.atan2(dx1, dy1)
+    const pAngle = Math.atan2(dx2, dy1)
+    const angle = pAngle - sAngle
+
+    if (this.el.dispatch('resize', { box: this.startBox, angle: 0, shear: angle, eventType: this.eventType, event: e, handler: this }).defaultPrevented) {
+      return
+    }
+
+    this.el.skew(factor * angle, 0)
   }
 
   endResize (ev) {
     // Unbind resize and end events to window
-    if (this.eventType !== 'rot' || this.eventType === 'shear') {
+    if (this.eventType !== 'rot' && this.eventType !== 'shear') {
       this.resize(ev)
     }
 
