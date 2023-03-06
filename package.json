@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/svgdotjs/svg.resize.js",
   "main": "dist/svg.resize.js",
+  "module": "src/svg.select.js",
   "files": [
     "/dist",
     "/src",
